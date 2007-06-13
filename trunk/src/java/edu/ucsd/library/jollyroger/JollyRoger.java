@@ -38,9 +38,9 @@ public class JollyRoger extends HttpServlet
 	private static final Namespace MARC_NS = new Namespace(
 		"","http://www.loc.gov/MARC21/slim"
 	);
-	private static final Namespace XSI_NS = new Namespace(
-		"xsi","http://www.w3.org/2001/XMLSchema-instance"
-	);
+	//private static final Namespace XSI_NS = new Namespace(
+	//	"xsi","http://www.w3.org/2001/XMLSchema-instance"
+	//);
 
 	/**
 	 * Servlet initialization.
@@ -168,7 +168,7 @@ public class JollyRoger extends HttpServlet
 			new QName("record",MARC_NS)
 		);
 		doc.setRootElement(record);
-		record.addAttribute( new QName("schemaLocation", XSI_NS), "http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" );
+		//record.addAttribute( new QName("schemaLocation", XSI_NS), "http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" );
 
 		// wrap continuing lines
 		marctext = marctext.replaceAll( "\\n       ", " " );
