@@ -21,6 +21,10 @@
         <input type="text" name="value" value=""/>
         <input type="submit" value="go"/>
       </p>
+      <p>use namespaces:
+        <input type="radio" name="ns" value="true" default> yes
+        <input type="radio" name="ns" value="false"> no
+      </p>
     </form>
     <h2>examples</h2>
     <ul>

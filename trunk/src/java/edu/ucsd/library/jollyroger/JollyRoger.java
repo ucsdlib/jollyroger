@@ -38,9 +38,9 @@ public class JollyRoger extends HttpServlet
 	private static final Namespace MARC_NS = new Namespace(
 		"","http://www.loc.gov/MARC21/slim"
 	);
-	//private static final Namespace XSI_NS = new Namespace(
-	//	"xsi","http://www.w3.org/2001/XMLSchema-instance"
-	//);
+	private static final Namespace XSI_NS = new Namespace(
+		"xsi","http://www.w3.org/2001/XMLSchema-instance"
+	);
 
 	/**
 	 * Servlet initialization.
@@ -59,6 +59,12 @@ public class JollyRoger extends HttpServlet
 		// get parameters
 		String type = request.getParameter("type"); // { bib, isbn, title }
 		String value = request.getParameter("value");
+		boolean useNS = true;
+		String ns = request.getParameter("ns");
+		if ( ns != null && ns.equals("false") )
+		{
+			useNS = false;
+		}
 
 		if ( type == null || type.equals("") ||
 				value == null || value.equals("") )
@@ -106,10 +112,10 @@ public class JollyRoger extends HttpServlet
 			String marctext = html.substring(
 				html.indexOf("<pre>")+5, html.indexOf("</pre>")
 			);
-			Document doc = convertToXml( marctext );
+			Document doc = convertToXml( marctext, useNS );
 
 			// extract holdings and add to marcxml
-			extractHoldings( html, doc.getRootElement() );
+			extractHoldings( html, doc.getRootElement(), useNS );
 
 			// output XML
 			response.setContentType("text/xml; charset=UTF-8");
@@ -160,15 +166,26 @@ public class JollyRoger extends HttpServlet
 	/**
 	 * Convert tagged MARC to MARCXML.
 	**/
-	private Document convertToXml( String marctext ) throws IOException
+	private Document convertToXml( String marctext, boolean useNS )
+		throws IOException
 	{
 
 		Document doc = DocumentHelper.createDocument();
-		Element record = DocumentHelper.createElement(
-			new QName("record",MARC_NS)
-		);
+		Element record = null;
+		if ( useNS )
+		{
+			record = DocumentHelper.createElement(new QName("record",MARC_NS));
+			record.addAttribute(
+				new QName("schemaLocation", XSI_NS),
+				"http://www.loc.gov/MARC21/slim " +
+				"http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd"
+			);
+		}
+		else
+		{
+			record = DocumentHelper.createElement("record");
+		}
 		doc.setRootElement(record);
-		//record.addAttribute( new QName("schemaLocation", XSI_NS), "http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" );
 
 		// wrap continuing lines
 		marctext = marctext.replaceAll( "\\n       ", " " );
@@ -185,18 +202,42 @@ public class JollyRoger extends HttpServlet
 
 			if ( tag.equals("LEA") )
 			{
-				Element leader = record.addElement(new QName("leader",MARC_NS));
+				Element leader = null;
+				if ( useNS )
+				{
+					leader = record.addElement(new QName("leader",MARC_NS));
+				}
+				else
+				{
+					leader = record.addElement("leader");
+				}
 				leader.setText(val);
 			}
 			else if ( Integer.parseInt(tag) <= 8 )
 			{
-				Element control = record.addElement(new QName("controlfield",MARC_NS));
+				Element control = null;
+				if ( useNS )
+				{
+					control = record.addElement(new QName("controlfield",MARC_NS));
+				}
+				else
+				{
+					control = record.addElement("controlfield");
+				}
 				control.addAttribute("tag",tag);
 				control.setText(val);
 			}
 			else
 			{
-				Element datafield = record.addElement(new QName("datafield",MARC_NS));
+				Element datafield = null;
+				if ( useNS )
+				{
+					datafield = record.addElement(new QName("datafield",MARC_NS));
+				}
+				else
+				{
+					datafield = record.addElement("datafield");
+				}
 				datafield.addAttribute( "tag",  tag  );
 				datafield.addAttribute( "ind1", ind1 );
 				datafield.addAttribute( "ind2", ind2 );
@@ -218,7 +259,7 @@ public class JollyRoger extends HttpServlet
 						String code = subfields[i].substring(0,1);
 						String text = subfields[i].substring(1).trim();
 						text = text.replaceAll("  "," ");
-						subfield( datafield, code, text );
+						subfield( datafield, code, text, useNS );
 					}
 				}
 			}
@@ -230,7 +271,7 @@ public class JollyRoger extends HttpServlet
 	/**
 	 * Parse III HTML and extract holdings info, and add it to the MARCXML.
 	**/
-	private void extractHoldings( String html, Element record )
+	private void extractHoldings( String html, Element record, boolean useNS )
 	{
         int marker = -1;
         if ( html.indexOf("class=\"bibItems\">") != -1 )
@@ -274,19 +315,34 @@ public class JollyRoger extends HttpServlet
                 String[] fields = row.split("\\n+");
 
 				// add to doc
-				Element holding = record.addElement(
-					new QName("datafield", MARC_NS)
-				);
+				Element holding = null;
+				if ( useNS )
+				{
+					holding = record.addElement( new QName("datafield", MARC_NS) );
+				}
+				else
+				{
+					holding = record.addElement( "datafield" );
+				}
 				holding.addAttribute("tag","852");
-				subfield( holding, "b", fields[0].trim() );
-				subfield( holding, "c", fields[1].trim() );
-				subfield( holding, "z", fields[2].trim() );
+				subfield( holding, "b", fields[0].trim(), useNS );
+				subfield( holding, "c", fields[1].trim(), useNS );
+				subfield( holding, "z", fields[2].trim(), useNS );
             }
         }
 	}
-	private void subfield( Element elem, String code, String value )
+	private void subfield( Element elem, String code, String value,
+		boolean useNS )
 	{
-		Element subfield = elem.addElement( new QName("subfield",MARC_NS) );
+		Element subfield = null;
+		if ( useNS )
+		{
+			subfield = elem.addElement( new QName("subfield",MARC_NS) );
+		}
+		else
+		{
+			subfield = elem.addElement( "subfield" );
+		}
 		subfield.addAttribute( "code", code );
 		subfield.setText( value );
 	}
