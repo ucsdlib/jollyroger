@@ -1,6 +1,8 @@
 package edu.ucsd.library.jollyroger;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -17,10 +19,11 @@ import org.dom4j.Element;
 import org.dom4j.QName;
 import org.dom4j.Namespace;
 
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.methods.GetMethod;
 
 /**
  * Servlet interface to III Catalog that converts output to MARCXML.
@@ -131,37 +134,66 @@ public class JollyRoger extends HttpServlet
 		}
 	}
 
-	/**
-	 * Retrieve a URL and return the response body as a string.
-	**/
-	private static String getContentFromURL(String url) throws IOException
-	{
-		HttpClient client = new HttpClient();
-		GetMethod getMethod = new GetMethod(url);
-		String response = null;
+    /**
+     * Accesses a URL and returns the content from that URL.
+     *
+     * @param url
+     *            String representation of URL.
+     * @throws IOException
+     *             URL not available.
+     * @return The content of the accessed URL.
+     */
+    public static String getContentFromURL(String url) throws IOException
+    {
+        GetMethod getMethod = new GetMethod(url);
+        return executeHttpMethod( getMethod );
+    }
+    public static String executeHttpMethod( HttpMethod method )
+        throws IOException
+    {
+        HttpClient client = new HttpClient();
+        StringBuffer response = null;
 
-		try
-		{
-			int statusCode = client.executeMethod(getMethod);
-			if ( statusCode == HttpStatus.SC_OK )
-			{
-				response = new String(getMethod.getResponseBody());
-			}
-		}
-		catch (HttpException he)
-		{
-			he.printStackTrace();
-			throw new IOException(
-				"Http error connecting to '" + url + "':" + he.getMessage()
-			);
-		}
-		finally
-		{
-			getMethod.releaseConnection();
-		}
+        try
+        {
+            int statusCode = client.executeMethod(method);
+            if ( statusCode == HttpStatus.SC_OK )
+            {
+                InputStream is = method.getResponseBodyAsStream();
+                if ( is != null )
+                {
+                    BufferedReader buf = new BufferedReader(
+                        new InputStreamReader(is)
+                    );
+                    response = new StringBuffer();
+                    for ( String line = null; (line=buf.readLine()) != null; )
+                    {
+                        response.append( line + "\n" );
+                    }
+                }
+            }
+        }
+        catch (HttpException he)
+        {
+            he.printStackTrace();
+            throw new IOException(
+                "Http error connecting to '" + method.getURI().toString() + "':" + he.getMessage()
+            );
+        }
+        finally
+        {
+            method.releaseConnection();
+        }
 
-		return response;
-	}
+        if ( response == null )
+        {
+            return null;
+        }
+        else
+        {
+            return response.toString();
+        }
+    }
 
 	/**
 	 * Convert tagged MARC to MARCXML.
