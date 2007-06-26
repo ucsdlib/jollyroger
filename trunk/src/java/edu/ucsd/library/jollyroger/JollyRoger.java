@@ -322,44 +322,47 @@ public class JollyRoger extends HttpServlet
             marker = html.indexOf("class=\"centralHolding");
         }
 
-        String table = html.substring(marker);
-        table = table.substring( 0, table.indexOf("</table>") );
+		if ( marker != -1 )
+		{
+        	String table = html.substring(marker);
+        	table = table.substring( 0, table.indexOf("</table>") );
 
-        while ( table.indexOf("<tr") != -1 )
-        {
-            // get the current row and remove it from main variable
-            int rowMarker = table.indexOf("</tr>");
-            String row = table.substring(0,rowMarker);
-            table = table.substring(rowMarker+5);
-
-            // make sure this isn't the header row
-            if ( row.indexOf("<th") == -1 )
-            {
-                // remove header
-                row = row.substring( row.indexOf("<td") );
-
-                // remove markup
-                row = row.replaceAll("<.+?>","");
-                row = row.replaceAll("&nbsp;","");
-                row = row.replaceAll("  "," ");
-
-                // split into fields
-                String[] fields = row.split("\\n+");
-
-				// add to doc
-				Element holding = null;
-				if ( useNS )
-				{
-					holding = record.addElement( new QName("datafield", MARC_NS) );
-				}
-				else
-				{
-					holding = record.addElement( "datafield" );
-				}
-				holding.addAttribute("tag","852");
-				subfield( holding, "b", fields[0].trim(), useNS );
-				subfield( holding, "c", fields[1].trim(), useNS );
-				subfield( holding, "z", fields[2].trim(), useNS );
+        	while ( table.indexOf("<tr") != -1 )
+        	{
+            	// get the current row and remove it from main variable
+            	int rowMarker = table.indexOf("</tr>");
+            	String row = table.substring(0,rowMarker);
+            	table = table.substring(rowMarker+5);
+	
+            	// make sure this isn't the header row
+            	if ( row.indexOf("<th") == -1 )
+            	{
+                	// remove header
+                	row = row.substring( row.indexOf("<td") );
+	
+                	// remove markup
+                	row = row.replaceAll("<.+?>","");
+                	row = row.replaceAll("&nbsp;","");
+                	row = row.replaceAll("  "," ");
+	
+                	// split into fields
+                	String[] fields = row.split("\\n+");
+	
+					// add to doc
+					Element holding = null;
+					if ( useNS )
+					{
+						holding = record.addElement( new QName("datafield", MARC_NS) );
+					}
+					else
+					{
+						holding = record.addElement( "datafield" );
+					}
+					holding.addAttribute("tag","852");
+					subfield( holding, "b", fields[0].trim(), useNS );
+					subfield( holding, "c", fields[1].trim(), useNS );
+					subfield( holding, "z", fields[2].trim(), useNS );
+            	}
             }
         }
 	}
