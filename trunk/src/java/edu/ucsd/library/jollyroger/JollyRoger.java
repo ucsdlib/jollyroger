@@ -1,11 +1,15 @@
 package edu.ucsd.library.jollyroger;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.net.URL;
+import java.util.ArrayList;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -13,17 +17,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.TransformerException;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.QName;
 import org.dom4j.Namespace;
+import org.dom4j.io.DocumentSource;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+
+import edu.ucsd.library.util.XsltUtil;
 
 /**
  * Servlet interface to III Catalog that converts output to MARCXML.
@@ -36,6 +47,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 public class JollyRoger extends HttpServlet
 {
 	private String baseURL = null;
+	private static URL modsXslUrl = null;
 
 	// declare namespaces
 	private static final Namespace MARC_NS = new Namespace(
@@ -52,6 +64,14 @@ public class JollyRoger extends HttpServlet
 	{
 		ServletContext context = config.getServletContext();
 		baseURL = context.getInitParameter("catalog-url");
+		try
+		{
+			modsXslUrl = context.getResource("/WEB-INF/MARC21slim2MODS.xsl");
+		}
+		catch ( Exception ex )
+		{
+			ex.printStackTrace();
+		}
 	}
 
 	/**
@@ -62,12 +82,8 @@ public class JollyRoger extends HttpServlet
 		// get parameters
 		String type = request.getParameter("type"); // { bib, isbn, title }
 		String value = request.getParameter("value");
-		boolean useNS = true;
-		String ns = request.getParameter("ns");
-		if ( ns != null && ns.equals("false") )
-		{
-			useNS = false;
-		}
+		boolean useNS = getBoolean( request, "ns", true );
+		boolean outputMods = getBoolean( request, "mods", false );
 
 		if ( type == null || type.equals("") ||
 				value == null || value.equals("") )
@@ -123,7 +139,16 @@ public class JollyRoger extends HttpServlet
 			// output XML
 			response.setContentType("text/xml; charset=UTF-8");
 			PrintWriter out = response.getWriter();
-			output( doc, out );
+			if ( outputMods )
+			{
+				// marc2mods output
+				outputMods( doc, out );
+			}
+			else
+			{
+				// unprocessed marcxml
+				output( doc, out );
+			}
 		}
 		catch ( Exception ex )
 		{
@@ -131,6 +156,41 @@ public class JollyRoger extends HttpServlet
 				response, response.SC_INTERNAL_SERVER_ERROR, ex.toString()
 			);
 			ex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Convert MARC XML to MODS and send to client.
+	**/
+	private static void outputMods( Document doc, PrintWriter out )
+		throws IOException, TransformerException
+	{
+		StreamSource xsl = new StreamSource( modsXslUrl.toString() );
+		DocumentSource xml = new DocumentSource(doc);
+		StreamResult result = new StreamResult( out );
+		XsltUtil.xslt( xsl, xml, result );
+	}
+
+	/**
+	 * Utility method to get a boolean value from a request parameter.
+	**/
+	private static boolean getBoolean( HttpServletRequest request, String param,
+		boolean defaultValue )
+	{
+
+		// get string value
+		String s = request.getParameter( param );
+		if ( s != null && s.equals("false") )
+		{
+			return false;
+		}
+		else if ( s != null && s.equals("true") )
+		{
+			return true;
+		}
+		else
+		{
+			return defaultValue;
 		}
 	}
 
@@ -366,6 +426,10 @@ public class JollyRoger extends HttpServlet
             }
         }
 	}
+
+	/**
+	 * Utility method to create a subfield element.
+	**/
 	private void subfield( Element elem, String code, String value,
 		boolean useNS )
 	{
@@ -382,11 +446,17 @@ public class JollyRoger extends HttpServlet
 		subfield.setText( value );
 	}
 
+	/**
+	 * Convert XML to text and send to client.
+	**/
 	private void output( Document doc, PrintWriter out )
 	{
 		out.println( doc.asXML() );
 	}
 
+	/**
+	 * Send an error message to client.
+	**/
 	private void sendError( HttpServletResponse response, int code, String msg )
 	{
 		try

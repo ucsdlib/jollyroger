@@ -12,7 +12,7 @@
     <h1>jolly roger</h1>
     <p>retrieve a record by:</p>
     <form action="get">
-      <p>
+      <blockquote>
         <select name="type">
           <option value="bib">bib number</option>
           <option value="isbn">isbn</option>
@@ -20,17 +20,24 @@
         </select>
         <input type="text" name="value" value=""/>
         <input type="submit" value="go"/>
-      </p>
-      <p>use namespaces:
-        <input type="radio" name="ns" value="true" default> yes
+      </blockquote>
+      <p>output:</p>
+      <blockquote>
+        <input type="radio" name="mods" value="false" checked="checked">
+          marc<br/>
+        <input type="radio" name="mods" value="true"> mods (requires namespaces)
+      </blockquote>
+      <p>use namespaces:</p>
+      <blockquote>
+        <input type="radio" name="ns" value="true" checked="checked"> yes<br/>
         <input type="radio" name="ns" value="false"> no
-      </p>
+      </blockquote>
     </form>
     <h2>examples</h2>
     <ul>
-      <li><a href="/jollyroger/get?type=bib&value=b3906609">bib number: b3906609</li>
-      <li><a href="/jollyroger/get?type=isbn&value=0585202648">isbn: 0585202648</li>
-      <li><a href="/jollyroger/get?type=title&value=franny+and+zooey">title: franny and zooey</li>
+      <li><a href="/jollyroger/get?type=bib&value=b3906609">bib number: b3906609</a></li>
+      <li><a href="/jollyroger/get?type=isbn&value=0585202648">isbn: 0585202648</a></li>
+      <li><a href="/jollyroger/get?type=title&value=franny+and+zooey">title: franny and zooey</a></li>
     </ul>
   </body>
 </html>
