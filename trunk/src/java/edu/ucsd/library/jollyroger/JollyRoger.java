@@ -125,6 +125,7 @@ public class JollyRoger extends HttpServlet
 		try
 		{
 			// get response
+			//System.err.println("url: " + baseURL + query);
 			String html = getContentFromURL( baseURL + query );
 
 			// extract marc and convert to XML
@@ -287,76 +288,83 @@ public class JollyRoger extends HttpServlet
 		);
 		for ( String line = null; (line=buf.readLine()) != null; )
 		{
-            String tag  = line.substring( 0, 3 );
-            String ind1 = line.substring( 4, 5 );
-            String ind2 = line.substring( 5, 6 );
-            String val  = line.substring( 7 ).trim();
-
-			if ( tag.equals("LEA") )
+			try
 			{
-				Element leader = null;
-				if ( useNS )
+            	String tag  = line.substring( 0, 3 );
+            	String ind1 = line.substring( 4, 5 );
+            	String ind2 = line.substring( 5, 6 );
+            	String val  = line.substring( 7 ).trim();
+	
+				if ( tag.equals("LEA") )
 				{
-					leader = record.addElement(new QName("leader",MARC_NS));
-				}
-				else
-				{
-					leader = record.addElement("leader");
-				}
-				leader.setText(val);
-			}
-			else if ( Integer.parseInt(tag) <= 8 )
-			{
-				Element control = null;
-				if ( useNS )
-				{
-					control = record.addElement(new QName("controlfield",MARC_NS));
-				}
-				else
-				{
-					control = record.addElement("controlfield");
-				}
-				control.addAttribute("tag",tag);
-				control.setText(val);
-			}
-			else
-			{
-				Element datafield = null;
-				if ( useNS )
-				{
-					datafield = record.addElement(new QName("datafield",MARC_NS));
-				}
-				else
-				{
-					datafield = record.addElement("datafield");
-				}
-				datafield.addAttribute( "tag",  tag  );
-				datafield.addAttribute( "ind1", ind1 );
-				datafield.addAttribute( "ind2", ind2 );
-
-                // if first character is not a pipe symbol, then this is the
-				// default |a subfield so make that explicit for the array
-				if ( !val.startsWith("|") )
-				{
-					val = "|a" + val;
-				}
-
-                // split the subfield data on the pipe and add them in using
-				// the first character after the delimiter as the subfield code
-				String[] subfields = val.split("\\|");
-				for ( int i = 0; i < subfields.length; i++ )
-				{
-					if ( !subfields[i].equals("") )
+					Element leader = null;
+					if ( useNS )
 					{
-						String code = subfields[i].substring(0,1);
-						String text = subfields[i].substring(1).trim();
-						text = text.replaceAll("  "," ");
-						subfield( datafield, code, text, useNS );
+						leader = record.addElement(new QName("leader",MARC_NS));
+					}
+					else
+					{
+						leader = record.addElement("leader");
+					}
+					leader.setText(val);
+				}
+				else if ( Integer.parseInt(tag) <= 8 )
+				{
+					Element control = null;
+					if ( useNS )
+					{
+						control = record.addElement(new QName("controlfield",MARC_NS));
+					}
+					else
+					{
+						control = record.addElement("controlfield");
+					}
+					control.addAttribute("tag",tag);
+					control.setText(val);
+				}
+				else
+				{
+					Element datafield = null;
+					if ( useNS )
+					{
+						datafield = record.addElement(new QName("datafield",MARC_NS));
+					}
+					else
+					{
+						datafield = record.addElement("datafield");
+					}
+					datafield.addAttribute( "tag",  tag  );
+					datafield.addAttribute( "ind1", ind1 );
+					datafield.addAttribute( "ind2", ind2 );
+	
+                	// if first character is not a pipe symbol, then this is the
+					// default |a subfield so make that explicit for the array
+					if ( !val.startsWith("|") )
+					{
+						val = "|a" + val;
+					}
+	
+                	// split the subfield data on the pipe and add them in using
+					// the first character after the delimiter as the subfield code
+					String[] subfields = val.split("\\|");
+					for ( int i = 0; i < subfields.length; i++ )
+					{
+						if ( !subfields[i].equals("") )
+						{
+							String code = subfields[i].substring(0,1);
+							String text = subfields[i].substring(1).trim();
+							text = text.replaceAll("  "," ");
+							subfield( datafield, code, text, useNS );
+						}
 					}
 				}
 			}
+			catch ( Exception ex )
+			{
+				ex.printStackTrace();
+			}
 		}
-
+	
 		return doc;
 	}
 
