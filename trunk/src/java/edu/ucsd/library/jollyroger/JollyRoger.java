@@ -48,6 +48,7 @@ public class JollyRoger extends HttpServlet
 {
 	private String baseURL = null;
 	private static URL modsXslUrl = null;
+	private static URL testXslUrl = null;
 
 	// declare namespaces
 	private static final Namespace MARC_NS = new Namespace(
@@ -67,6 +68,7 @@ public class JollyRoger extends HttpServlet
 		try
 		{
 			modsXslUrl = context.getResource("/WEB-INF/MARC21slim2MODS.xsl");
+			testXslUrl = context.getResource("/WEB-INF/test.xsl");
 		}
 		catch ( Exception ex )
 		{
@@ -84,6 +86,7 @@ public class JollyRoger extends HttpServlet
 		String value = request.getParameter("value");
 		boolean useNS = getBoolean( request, "ns", true );
 		boolean outputMods = getBoolean( request, "mods", false );
+		boolean outputTest = getBoolean( request, "test", false );
 
 		if ( type == null || type.equals("") ||
 				value == null || value.equals("") )
@@ -137,13 +140,26 @@ public class JollyRoger extends HttpServlet
 			// extract holdings and add to marcxml
 			extractHoldings( html, doc.getRootElement(), useNS );
 
-			// output XML
-			response.setContentType("text/xml; charset=UTF-8");
+			if ( outputTest )
+			{
+				// plaintext status output
+				response.setContentType("text/plain");
+			}
+			else
+			{
+				// output XML
+				response.setContentType("text/xml; charset=UTF-8");
+			}
 			PrintWriter out = response.getWriter();
 			if ( outputMods )
 			{
 				// marc2mods output
-				outputMods( doc, out );
+				outputXsl( doc, modsXslUrl, out );
+			}
+			else if ( outputTest )
+			{
+				// marc2mods output
+				outputXsl( doc, testXslUrl, out );
 			}
 			else
 			{
@@ -163,10 +179,10 @@ public class JollyRoger extends HttpServlet
 	/**
 	 * Convert MARC XML to MODS and send to client.
 	**/
-	private static void outputMods( Document doc, PrintWriter out )
+	private static void outputXsl( Document doc, URL url, PrintWriter out )
 		throws IOException, TransformerException
 	{
-		StreamSource xsl = new StreamSource( modsXslUrl.toString() );
+		StreamSource xsl = new StreamSource( url.toString() );
 		DocumentSource xml = new DocumentSource(doc);
 		StreamResult result = new StreamResult( out );
 		XsltUtil.xslt( xsl, xml, result );
