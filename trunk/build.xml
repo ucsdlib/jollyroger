@@ -39,6 +39,6 @@
   <fileset id="root" dir="${src}/root" includes="**/*"/>
 
   <!-- import common properties and tasks -->
-  <import file="../common/common.xml"/>
+  <import file="${common.home}/common.xml"/>
 
 </project>
