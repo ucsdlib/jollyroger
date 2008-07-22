@@ -34,6 +34,8 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 
+import org.apache.log4j.Logger;
+
 import edu.ucsd.library.util.XsltUtil;
 
 /**
@@ -46,7 +48,8 @@ import edu.ucsd.library.util.XsltUtil;
 **/
 public class JollyRoger extends HttpServlet
 {
-	private String baseURL = null;
+	private static Logger log = Logger.getLogger(JollyRoger.class);
+	private String[] baseURLs = null;
 	private static URL modsXslUrl = null;
 	private static URL testXslUrl = null;
 
@@ -64,7 +67,7 @@ public class JollyRoger extends HttpServlet
 	public void init( ServletConfig config )
 	{
 		ServletContext context = config.getServletContext();
-		baseURL = context.getInitParameter("catalog-url");
+		baseURLs = context.getInitParameter("catalog-url").split(" ");
 		try
 		{
 			modsXslUrl = context.getResource("/WEB-INF/MARC21slim2MODS.xsl");
@@ -72,7 +75,7 @@ public class JollyRoger extends HttpServlet
 		}
 		catch ( Exception ex )
 		{
-			ex.printStackTrace();
+			log.warn("Unable to load stylesheets", ex );
 		}
 	}
 
@@ -129,8 +132,7 @@ public class JollyRoger extends HttpServlet
 		try
 		{
 			// get response
-			//System.err.println("url: " + baseURL + query);
-			String html = getContentFromURL( baseURL + query );
+			String html = getContentFromURL( baseURLs, query );
 
 			// extract marc and convert to XML
 			String marctext = html.substring(
@@ -173,7 +175,7 @@ public class JollyRoger extends HttpServlet
 			sendError(
 				response, response.SC_INTERNAL_SERVER_ERROR, ex.toString()
 			);
-			ex.printStackTrace();
+			log( "Error retrieving or formatting content", ex );
 		}
 	}
 
@@ -221,47 +223,63 @@ public class JollyRoger extends HttpServlet
      *             URL not available.
      * @return The content of the accessed URL.
      */
-    public static String getContentFromURL(String url) throws IOException
-    {
-        GetMethod getMethod = new GetMethod(url);
-        return executeHttpMethod( getMethod );
-    }
-    public static String executeHttpMethod( HttpMethod method )
-        throws IOException
+    public static String getContentFromURL(String[] base, String urlpart)
+		throws IOException
     {
         HttpClient client = new HttpClient();
         StringBuffer response = null;
+		GetMethod method = null;
 
-        try
-        {
-            int statusCode = client.executeMethod(method);
-            if ( statusCode == HttpStatus.SC_OK )
-            {
-                InputStream is = method.getResponseBodyAsStream();
-                if ( is != null )
-                {
-                    BufferedReader buf = new BufferedReader(
-                        new InputStreamReader(is)
-                    );
-                    response = new StringBuffer();
-                    for ( String line = null; (line=buf.readLine()) != null; )
-                    {
-                        response.append( line + "\n" );
-                    }
-                }
-            }
-        }
-        catch (HttpException he)
-        {
-            he.printStackTrace();
-            throw new IOException(
-                "Http error connecting to '" + method.getURI().toString() + "':" + he.getMessage()
-            );
-        }
-        finally
-        {
-            method.releaseConnection();
-        }
+		boolean success = false;
+		for ( int i = 0; i < base.length && !success; i++ )
+		{
+        	try
+        	{
+        		method = new GetMethod( base[i] + urlpart );
+            	int statusCode = client.executeMethod(method);
+            	if ( statusCode == HttpStatus.SC_OK )
+            	{
+                	InputStream is = method.getResponseBodyAsStream();
+                	if ( is != null )
+                	{
+                    	BufferedReader buf = new BufferedReader(
+                        	new InputStreamReader(is)
+                    	);
+                    	response = new StringBuffer();
+                    	for ( String line = null; (line=buf.readLine()) != null; )
+                    	{
+                        	response.append( line + "\n" );
+                    	}
+                	}
+					success = true;
+            	}
+        	}
+        	catch (HttpException he)
+        	{
+               	String msg = "Http error connecting to '" + method.getURI().toString();
+            	log.warn( msg, he ); 
+            	throw new IOException(
+                	msg + "':" + he.getMessage()
+            	);
+        	}
+        	catch (IOException ioex)
+			{
+				if ( (i+1) < base.length )
+				{
+					// if there are other servers to try, just report the error
+					log.warn("Error retrieving " + base[i] + urlpart + ", trying other servers: " + ioex.toString());
+				}
+				else
+				{
+					// no more servers, just throw the exception
+					throw ioex;
+				}
+			}
+        	finally
+        	{
+            	method.releaseConnection();
+        	}
+		}
 
         if ( response == null )
         {
@@ -378,7 +396,7 @@ public class JollyRoger extends HttpServlet
 			}
 			catch ( Exception ex )
 			{
-				ex.printStackTrace();
+				log.warn( "Error converting MARC text to XML format", ex );
 			}
 		}
 	
@@ -490,7 +508,7 @@ public class JollyRoger extends HttpServlet
 		}
 		catch ( IOException ex2 )
 		{
-			ex2.printStackTrace();
+			log.warn("Error sending error message", ex2 );
 		}
 	}
 }

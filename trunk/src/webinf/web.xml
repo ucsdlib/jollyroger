@@ -14,7 +14,7 @@
   </context-param>
   <context-param>
     <param-name>catalog-url</param-name>
-    <param-value>http://roger.ucsd.edu</param-value>
+    <param-value>http://roger.ucsd.edu http://pactech.ucsd.edu</param-value>
   </context-param>
 
   <servlet>

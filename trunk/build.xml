@@ -33,6 +33,7 @@
       <include name="catalina-ant.jar"/>
       <include name="library_package.jar"/>
       <include name="library_security.jar"/>
+      <include name="log4j.jar"/>
     </fileset>
   </path>
 
