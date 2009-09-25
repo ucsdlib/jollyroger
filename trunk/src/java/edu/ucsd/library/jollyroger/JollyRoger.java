@@ -175,7 +175,8 @@ public class JollyRoger extends HttpServlet
 			sendError(
 				response, response.SC_INTERNAL_SERVER_ERROR, ex.toString()
 			);
-			log( "Error retrieving or formatting content", ex );
+			ex.printStackTrace();
+			//log( "Error retrieving or formatting content", ex );
 		}
 	}
 
@@ -462,9 +463,18 @@ public class JollyRoger extends HttpServlet
 						holding = record.addElement( "datafield" );
 					}
 					holding.addAttribute("tag","852");
-					subfield( holding, "b", fields[0].trim(), useNS );
-					subfield( holding, "c", fields[1].trim(), useNS );
-					subfield( holding, "z", fields[2].trim(), useNS );
+					if ( fields != null && fields.length > 0 )
+					{
+						subfield( holding, "b", fields[0].trim(), useNS );
+					}
+					if ( fields != null && fields.length > 1 )
+					{
+						subfield( holding, "c", fields[1].trim(), useNS );
+					}
+					if ( fields != null && fields.length > 2 )
+					{
+						subfield( holding, "z", fields[2].trim(), useNS );
+					}
             	}
             }
         }
