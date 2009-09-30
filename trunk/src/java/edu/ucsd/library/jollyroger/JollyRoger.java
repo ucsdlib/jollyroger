@@ -99,6 +99,7 @@ public class JollyRoger extends HttpServlet
 				response, response.SC_BAD_REQUEST,
 				"Both type and value must be specified"
 			);
+			return;
 		}
 
 		// construct III query URL
@@ -126,6 +127,7 @@ public class JollyRoger extends HttpServlet
 				response, response.SC_BAD_REQUEST,
 				"Type \"" + type + "\t not supported"
 			);
+			return;
 		}
 
 		// retrieve and parse content
@@ -135,9 +137,19 @@ public class JollyRoger extends HttpServlet
 			String html = getContentFromURL( baseURLs, query );
 
 			// extract marc and convert to XML
-			String marctext = html.substring(
-				html.indexOf("<pre>")+5, html.indexOf("</pre>")
-			);
+			int idx1 = html.indexOf("<pre>")+5;
+			int idx2 = html.indexOf("</pre>");
+
+			// error retrieving record
+			if ( idx1 < 0 || idx2 < 0 || idx1 > idx2 || idx2 > html.length() )
+			{
+				sendError(
+					response, response.SC_INTERNAL_SERVER_ERROR,
+					"Error retrieving record"
+				);
+				return;
+			}
+			String marctext = html.substring( idx1, idx2 );
 			Document doc = convertToXml( marctext, useNS );
 
 			// extract holdings and add to marcxml
