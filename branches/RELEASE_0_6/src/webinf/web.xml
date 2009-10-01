@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN
+" "http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
+
+<web-app>
+  <!-- Version number parameters -->
+  <context-param>
+    <param-name>version-number</param-name>
+    <param-value>@version_string@</param-value>
+  </context-param>
+  <context-param>
+    <param-name>build-date</param-name>
+    <param-value>@build_date@ @build_time@</param-value>
+  </context-param>
+  <context-param>
+    <param-name>catalog-url</param-name>
+    <param-value>http://roger.ucsd.edu http://pactech.ucsd.edu</param-value>
+  </context-param>
+
+  <servlet>
+    <servlet-name>get</servlet-name>
+    <servlet-class>edu.ucsd.library.jollyroger.JollyRoger</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>get</servlet-name>
+    <url-pattern>/get</url-pattern>
+  </servlet-mapping>
+
+  <distributable/>
+
+</web-app>
