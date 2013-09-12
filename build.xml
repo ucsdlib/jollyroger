@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<project name="jollyroger" default="webapp" basedir=".">
+
+  <property name="appName" value="jollyroger"/>
+  <property file="${user.home}/build.properties"/>
+  <property file="${basedir}/build.properties"/>
+
+  <!-- source directories -->
+  <property name="src"       value="${basedir}/src"/>
+  <property name="java"      value="${src}/java"/>
+  <property name="lib"       value="${src}/lib"/>
+  <property name="lib2"      value="${src}/lib2"/>
+  <property name="metainf"   value="${src}/metainf"/>
+  <property name="root"      value="${src}/root"/>
+  <property name="webinf"    value="${src}/webinf"/>
+
+  <!-- build directories -->
+  <property name="dist"      value="${basedir}/dist"/>
+  <property name="tmp"       value="${basedir}/tmp"/>
+
+  <!-- classpath -->
+  <path id="classpath">
+
+    <fileset id="lib" dir="${lib}">
+      <include name="dom4j-1.6.1.jar"/>
+      <include name="commons-httpclient.jar"/>
+      <include name="commons-logging-1.1.1.jar"/>
+      <include name="log4j-1.2.8.jar"/>
+      <include name="library_package.jar"/>
+      <include name="xalan.jar"/>
+    </fileset>
+
+    <!-- compile only -->
+    <fileset id="lib2" dir="${lib2}">
+      <include name="servlet.jar"/>
+      <include name="catalina-ant.jar"/>
+    </fileset>
+  </path>
+
+  <fileset id="root" dir="${src}/root" includes="**/*"/>
+
+  <!-- temp directories -->
+  <property name="api"       value="${basedir}/doc/api"/>
+  <property name="filtered"  value="${tmp}/filtered"/>
+  <property name="webapp"    value="${tmp}/webapp"/>
+
+
+  <!-- clean -->
+  <target name="clean" description="Delete generated directories">
+    <delete dir="${tmp}"/>
+  </target>
+
+
+  <!-- distclean -->
+  <target name="distclean" description="Delete WAR files">
+    <delete dir="${dist}"/>
+    <delete dir="${tmp}"/>
+  </target>
+
+
+  <!-- prepare -->
+  <target name="prepare" description="Create output directories.">
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${tmp}"/>
+    <mkdir dir="${api}"/>
+    <mkdir dir="${filtered}"/>
+    <mkdir dir="${webapp}/META-INF"/>
+    <mkdir dir="${webapp}/WEB-INF"/>
+    <mkdir dir="${webapp}/WEB-INF/lib"/>
+    <mkdir dir="${webapp}/WEB-INF/classes"/>
+  </target>
+
+  <!-- version -->
+  <target name="version" description="Create version properties">
+    <exec executable="git" outputproperty="git.version"
+        failifexecutionfails="true" errorproperty="">
+      <arg value="describe"/>
+      <arg value="--all"/>
+      <arg value="--always"/>
+      <arg value="--long"/>
+      <arg value="--abbrev=40"/>
+      <arg value="HEAD"/>
+    </exec>
+    <tstamp>
+      <format property="build_date" pattern="yyyy-MM-dd"/>
+      <format property="build_time" pattern="HH:mm:ss"/>
+    </tstamp>
+
+    <!-- filters -->
+    <filterset id="version-filters">
+      <filter token="version_string" value="${git.version}"/>
+      <filter token="build_date"     value="${build_date}"/>
+      <filter token="build_time"     value="${build_time}"/>
+      <filter token="user_name"      value="${user.name}"/>
+    </filterset>
+    <echo level="info" message="version: ${git.version}"/>
+    <echo level="info" message="built..: ${build_date} ${build_time} by ${user_name}"/>
+  </target>
+
+  <!-- compile -->
+  <target name="compile" description="Compile Java classes."
+      depends="prepare,version">
+    <!-- filter source code -->
+    <copy todir="${filtered}">
+      <fileset dir="${java}" includes="**/*.java"/>
+      <fileset dir="${java}" includes="**/*.properties"/>
+      <filterset refid="version-filters"/>
+    </copy>
+
+    <!-- compile -->
+    <javac destdir="${webapp}/WEB-INF/classes" srcdir="${filtered}"
+        deprecation="on" debug="true" debuglevel="lines,source" target="1.5"
+        includeantruntime="false" source="1.5">
+      <classpath refid="classpath"/>
+      <!-- <compilerarg line="-Xlint:unchecked"/> -->
+    </javac>
+
+    <!-- copy properties and jar files -->
+    <copy todir="${webapp}/WEB-INF/lib">
+      <fileset refid="lib"/>
+    </copy>
+    <copy todir="${webapp}/WEB-INF/classes">
+      <fileset dir="${filtered}" includes="**/*.properties"/>
+    </copy>
+  </target>
+
+
+  <!-- doc -->
+  <target name="doc" description="Copy root and webinf files." depends="prepare">
+    <copy todir="${webapp}/META-INF">
+      <fileset dir="${metainf}" includes="**/*"/>
+      <filterset refid="version-filters"/>
+    </copy>
+    <copy todir="${webapp}/WEB-INF">
+      <fileset dir="${webinf}" includes="**/*"/>
+      <filterset refid="version-filters"/>
+    </copy>
+    <copy todir="${webapp}">
+      <fileset dir="${root}" includes="**/*"/>
+    </copy>
+  </target>
+
+
+  <!-- build -->
+  <target name="build" description="Build webapp components"
+    depends="clean,prepare,compile,doc">
+  </target>
+
+  <!-- webapp -->
+  <target name="webapp" description="Build WAR file" depends="build">
+    <!-- move old war file out of the way -->
+    <move file="${dist}/${appName}.war" tofile="${dist}/${appName}.bak"
+      failonerror="false"/>
+
+    <!-- generate new war file -->
+    <war destfile="${dist}/${appName}.war" webxml="${webapp}/WEB-INF/web.xml">
+      <fileset dir="${webapp}">
+        <exclude name="WEB-INF/**"/>
+        <exclude name="META-INF/**"/>
+      </fileset>
+      <webinf dir="${webapp}/WEB-INF" excludes="web.xml"/>
+      <metainf dir="${webapp}/META-INF"/>
+    </war>
+  </target>
+
+
+  <!-- remote deployment -->
+  <taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask"
+      classpathref="classpath"/>
+  <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask"
+      classpathref="classpath"/>
+  <target name="remote-redeploy"
+      description="Undeploy and then redeploy webapp to remote tomcat">
+    <antcall target="remote-undeploy"/>
+    <waitfor maxwait="1000" maxwaitunit="millisecond">
+      <equals arg1="1" arg2="2"/>
+    </waitfor>
+    <antcall target="remote-deploy"/>
+  </target>
+  <target name="remote-deploy" description="Deploy webapp to remote tomcat">
+    <echo level="info" message="war = 'file://${dist}/${appName}.war'"/>
+    <deploy url="http://${manager.host}:8080/manager/text" path="/${appName}"
+        username="${manager.user}" password="${manager.pass}"
+        war="file://${dist}/${appName}.war"/>
+  </target>
+  <target name="remote-undeploy" description="Remove webapp from remote tomcat">
+    <undeploy url="http://${manager.host}:8080/manager/text" path="/${appName}"
+          username="${manager.user}" password="${manager.pass}" failonerror="false"/>
+  </target>
+
+</project>
