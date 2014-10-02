@@ -32,8 +32,7 @@
 
     <!-- compile only -->
     <fileset id="lib2" dir="${lib2}">
-      <include name="servlet.jar"/>
-      <include name="catalina-ant.jar"/>
+      <include name="*.jar"/>
     </fileset>
   </path>
 

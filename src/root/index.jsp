@@ -38,6 +38,7 @@
       <li><a href="/jollyroger/get?type=bib&value=b3906609">bib number: b3906609</a></li>
       <li><a href="/jollyroger/get?type=isbn&value=0585202648">isbn: 0585202648</a></li>
       <li><a href="/jollyroger/get?type=title&value=franny+and+zooey">title: franny and zooey</a></li>
+      <li><a href="version.jsp">version</a></li>
     </ul>
   </body>
 </html>
