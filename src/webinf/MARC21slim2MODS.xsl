@@ -2488,7 +2488,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</xsl:for-each>
 		
         <!-- adding 035 mapping to OCLC number identifier (see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
-		<xsl:for-each select="marc:datafield[@tag='037']">
+		<xsl:for-each select="marc:datafield[@tag='035']">
 			<xsl:if test="marc:subfield[@code='a']">
 				<identifier type="OCLC number" displayLabel="OCLC number">
                   <xsl:value-of select="substring-after(marc:subfield[@code='a'],'(OCoLC)')"/>
