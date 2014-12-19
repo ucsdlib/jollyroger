@@ -2487,6 +2487,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</identifier>
 		</xsl:for-each>
 		
+        <!-- adding 035 mapping to OCLC number identifier (see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
+		<xsl:for-each select="marc:datafield[@tag='037']">
+			<xsl:if test="marc:subfield[@code='a']">
+				<identifier type="OCLC number" displayLabel="OCLC number">
+                  <xsl:value-of select="substring-after(marc:subfield[@code='a'],'(OCoLC)')"/>
+				</identifier>
+			</xsl:if>
+		</xsl:for-each>
 		
 		<!-- 3.5 1.95 20140421 -->
 
@@ -4481,6 +4489,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
 	<!-- 1.100 245c 20140804 -->
 	<xsl:template name="createNoteFrom245c">
+<!-- suppressing 245c statement of responsibility note (see https://lib-jira.ucsd.edu:8443/browse/DM-62)
 		<xsl:if test="marc:subfield[@code='c']">
 				<note type="statement of responsibility">
 					<xsl:attribute name="altRepGroup">
@@ -4492,7 +4501,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					</xsl:call-template>
 				</note>
 		</xsl:if>
-
+-->
 	</xsl:template>
 
 	<xsl:template name="createNoteFrom362">
