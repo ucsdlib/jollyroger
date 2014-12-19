@@ -5,6 +5,7 @@
        <xsl:include href="http://www.loc.gov/marcxml/xslt/MARC21slimUtils.xsl"/>
     -->
     <xsl:include href="MARC21slimUtils.xsl"/>
+	<xsl:param name="roger"/>
 
 	<xsl:output encoding="UTF-8" indent="yes" method="xml"/>
 	<xsl:strip-space elements="*"/>
@@ -139,6 +140,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</xsl:choose>
 	</xsl:template>
 	<xsl:template name="marcRecord">
+		<!-- adding roger record (see see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
+		<xsl:if test="$roger != ''">
+			<identifier type="roger record" displayLabel="roger record">
+				<xsl:value-of select="$roger"/>
+			</identifier>
+		</xsl:if>
+
 		<xsl:variable name="leader" select="marc:leader"/>
 		<xsl:variable name="leader6" select="substring($leader,7,1)"/>
 		<xsl:variable name="leader7" select="substring($leader,8,1)"/>

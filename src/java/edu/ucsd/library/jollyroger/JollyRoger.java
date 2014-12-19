@@ -10,6 +10,8 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -104,9 +106,11 @@ public class JollyRoger extends HttpServlet
 
 		// construct III query URL
 		String query = "";
+		String roger = null;
 		if ( type.equals("bib") )
 		{
 			if ( value.length() > 8 ) { value = value.substring(0,8); }
+			roger = value;
 			// "/search/.b1234567/.b1234567/1,1,1,B/detlmarc~1234567&FF=&1,0,"
 			query = "/search/." + value + "/." + value + "/1,1,1,B/detlmarc~"
 				+ value.substring(1) + "&FF=&1,0,";
@@ -169,12 +173,12 @@ public class JollyRoger extends HttpServlet
 			if ( outputMods )
 			{
 				// marc2mods output
-				outputXsl( doc, modsXslUrl, out );
+				outputXsl( doc, modsXslUrl, roger, out );
 			}
 			else if ( outputTest )
 			{
 				// marc2mods output
-				outputXsl( doc, testXslUrl, out );
+				outputXsl( doc, testXslUrl, null, out );
 			}
 			else
 			{
@@ -195,13 +199,19 @@ public class JollyRoger extends HttpServlet
 	/**
 	 * Convert MARC XML to MODS and send to client.
 	**/
-	private static void outputXsl( Document doc, URL url, PrintWriter out )
-		throws IOException, TransformerException
+	private static void outputXsl( Document doc, URL url, String roger,
+		PrintWriter out ) throws IOException, TransformerException
 	{
 		StreamSource xsl = new StreamSource( url.toString() );
 		DocumentSource xml = new DocumentSource(doc);
 		StreamResult result = new StreamResult( out );
-		XsltUtil.xslt( xsl, xml, result );
+		Map<String,String> params = null;
+		if ( roger != null )
+		{
+			params = new HashMap<>();
+			params.put("roger",roger);
+		}
+		XsltUtil.xslt( params, xsl, xml, result );
 	}
 
 	/**
