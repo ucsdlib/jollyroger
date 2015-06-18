@@ -10,6 +10,46 @@
 	<xsl:output encoding="UTF-8" indent="yes" method="xml"/>
 	<xsl:strip-space elements="*"/>
 
+    <xsl:variable name="leader" select="//marc:record/marc:leader"/>
+    <xsl:variable name="leader6" select="substring($leader,7,1)"/>
+    <xsl:variable name="leader7" select="substring($leader,8,1)"/>
+    <xsl:variable name="leader19" select="substring($leader,20,1)"/>
+    <xsl:variable name="controlField008" select="marc:controlfield[@tag='008']"/>
+    <xsl:variable name="typeOf008">
+        <xsl:choose>
+            <xsl:when test="$leader6='a'">
+                <xsl:choose>
+                    <xsl:when
+                        test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
+                        >BK</xsl:when>
+                    <xsl:when test="$leader7='b' or $leader7='i' or $leader7='s'">SE</xsl:when>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:when test="$leader6='t'">BK</xsl:when>
+            <xsl:when test="$leader6='p'">MM</xsl:when>
+            <xsl:when test="$leader6='m'">CF</xsl:when>
+            <xsl:when test="$leader6='e' or $leader6='f'">MP</xsl:when>
+            <xsl:when test="$leader6='g' or $leader6='k' or $leader6='o' or $leader6='r'"
+                >VM</xsl:when>
+            <xsl:when test="$leader6='c' or $leader6='d' or $leader6='i' or $leader6='j'"
+                >MU</xsl:when>
+        </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="typeOfResource008">
+      <xsl:choose>
+          <xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
+          <xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
+          <xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
+          <xsl:when test="$leader6='i'">sound recording - nonmusical</xsl:when>
+          <xsl:when test="$leader6='j'">sound recording - musical</xsl:when>
+          <xsl:when test="$leader6='k'">still image</xsl:when>
+          <xsl:when test="$leader6='g'">moving image</xsl:when>
+          <xsl:when test="$leader6='r'">three dimensional object</xsl:when>
+          <xsl:when test="$leader6='m'">software, multimedia</xsl:when>
+          <xsl:when test="$leader6='p'">mixed material</xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+
 	<!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	MARC21slim2MODS3-5 (Revision 1.102) 20140812
 	
@@ -146,7 +186,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:value-of select="$roger"/>
 			</identifier>
 		</xsl:if>
-
+<!-- 
 		<xsl:variable name="leader" select="marc:leader"/>
 		<xsl:variable name="leader6" select="substring($leader,7,1)"/>
 		<xsl:variable name="leader7" select="substring($leader,8,1)"/>
@@ -172,7 +212,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					>MU</xsl:when>
 			</xsl:choose>
 		</xsl:variable>
-
+-->
 		<!-- titleInfo -->
 
 		<xsl:for-each select="marc:datafield[@tag='245']">
@@ -317,27 +357,31 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</name>
 		</xsl:for-each>
 -->
-
-		<typeOfResource>
-			<xsl:if test="$leader7='c'">
-				<xsl:attribute name="collection">yes</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
-				<xsl:attribute name="manuscript">yes</xsl:attribute>
-			</xsl:if>
-			<xsl:choose>
-				<xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
-				<xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
-				<xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
-				<xsl:when test="$leader6='i'">sound recording-nonmusical</xsl:when>
-				<xsl:when test="$leader6='j'">sound recording-musical</xsl:when>
-				<xsl:when test="$leader6='k'">still image</xsl:when>
-				<xsl:when test="$leader6='g'">moving image</xsl:when>
-				<xsl:when test="$leader6='r'">three dimensional object</xsl:when>
-				<xsl:when test="$leader6='m'">software, multimedia</xsl:when>
-				<xsl:when test="$leader6='p'">mixed material</xsl:when>
-			</xsl:choose>
-		</typeOfResource>
+		<xsl:if test="string-length($typeOfResource008) &gt; 0">
+		  <typeOfResource>
+				<xsl:if test="$leader7='c'">
+					<xsl:attribute name="collection">yes</xsl:attribute>
+				</xsl:if>
+				<xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+					<xsl:attribute name="manuscript">yes</xsl:attribute>
+				</xsl:if>
+				<xsl:value-of select="$typeOfResource008"/>
+	<!-- 
+				<xsl:choose>
+					<xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
+					<xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
+					<xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
+					<xsl:when test="$leader6='i'">sound recording - nonmusical</xsl:when>
+					<xsl:when test="$leader6='j'">sound recording - musical</xsl:when>
+					<xsl:when test="$leader6='k'">still image</xsl:when>
+					<xsl:when test="$leader6='g'">moving image</xsl:when>
+					<xsl:when test="$leader6='r'">three dimensional object</xsl:when>
+					<xsl:when test="$leader6='m'">software, multimedia</xsl:when>
+					<xsl:when test="$leader6='p'">mixed material</xsl:when>
+				</xsl:choose>
+	-->
+			</typeOfResource>
+		</xsl:if>
 		<xsl:if test="substring($controlField008,26,1)='d'">
 			<genre authority="marcgt">globe</genre>
 		</xsl:if>
@@ -672,12 +716,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<place>
 					<placeTerm>
 						<xsl:attribute name="type">text</xsl:attribute>
-						<xsl:call-template name="chopPunctuationFront">
-							<xsl:with-param name="chopString">
-								<xsl:call-template name="chopPunctuation">
-									<xsl:with-param name="chopString" select="."/>
-								</xsl:call-template>
-							</xsl:with-param>
+						<xsl:call-template name="chopPunctuation">
+							<xsl:with-param name="chopString" select="."/>
 						</xsl:call-template>
 					</placeTerm>
 				</place>
@@ -4425,7 +4465,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</xsl:choose>
 		</xsl:variable>
 			
-		<xsl:if test="string-length($typeOfResource) &gt; 0">
+		<xsl:if test="string-length($typeOfResource) &gt; 0 and $typeOfResource != $typeOfResource008">
 			<typeOfResource><xsl:value-of select="$typeOfResource" /></typeOfResource>
 		</xsl:if>
 		</xsl:for-each>
