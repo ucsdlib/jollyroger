@@ -4355,7 +4355,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 	<!-- name 700 710 711 720 -->
 
 	<xsl:template name="createNameFrom700">
-		<xsl:if test="@ind1='1'">
+        <!-- ucsd start: suppressing names with subfield t -->
+		<xsl:if test="@ind1='1' and not(marc:subfield[@code='t'])">
 			<name type="personal">
 				<xsl:call-template name="xxx880"/>
 				<xsl:call-template name="nameABCDQ"/>
@@ -4363,7 +4364,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:call-template name="role"/>
 			</name>
 		</xsl:if>
-		<xsl:if test="@ind1='3'">
+		<xsl:if test="@ind1='3' and not(marc:subfield[@code='t'])">
 			<name type="family">
 				<xsl:call-template name="xxx880"/>
 				<xsl:call-template name="nameABCDQ"/>
@@ -4371,22 +4372,31 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:call-template name="role"/>
 			</name>
 		</xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNameFrom710">
-		<name type="corporate">
-			<xsl:call-template name="xxx880"/>
-			<xsl:call-template name="nameABCDN"/>
-			<xsl:call-template name="role"/>
-		</name>
+        <!-- ucsd start: suppressing names with subfield t -->
+        <xsl:if test="not(marc:subfield[@code='t'])">
+		    <name type="corporate">
+			    <xsl:call-template name="xxx880"/>
+			    <xsl:call-template name="nameABCDN"/>
+			    <xsl:call-template name="role"/>
+		    </name>
+        </xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNameFrom711">
-		<name type="conference">
-			<xsl:call-template name="xxx880"/>
-			<xsl:call-template name="nameACDEQ"/>
-			<xsl:call-template name="role"/>
-		</name>
+        <!-- ucsd start: suppressing names with subfield t -->
+        <xsl:if test="not(marc:subfield[@code='t'])">
+		    <name type="conference">
+			    <xsl:call-template name="xxx880"/>
+			    <xsl:call-template name="nameACDEQ"/>
+			    <xsl:call-template name="role"/>
+		    </name>
+        </xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 	
 	
