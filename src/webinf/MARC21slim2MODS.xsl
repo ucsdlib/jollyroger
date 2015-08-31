@@ -1,13 +1,57 @@
 <xsl:stylesheet xmlns="http://www.loc.gov/mods/v3" xmlns:marc="http://www.loc.gov/MARC21/slim"
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     exclude-result-prefixes="xlink marc" version="1.0">
-    <!-- use local copy of util xsl
+    <!-- ucsd start: use local copy of util xsl
        <xsl:include href="http://www.loc.gov/marcxml/xslt/MARC21slimUtils.xsl"/>
     -->
     <xsl:include href="MARC21slimUtils.xsl"/>
+	<xsl:param name="roger"/>
+    <!-- ucsd end -->
 
 	<xsl:output encoding="UTF-8" indent="yes" method="xml"/>
 	<xsl:strip-space elements="*"/>
+
+    <!-- ucsd start: adding leader19 and moving outside of root template -->
+    <xsl:variable name="leader" select="//marc:record/marc:leader"/>
+    <xsl:variable name="leader6" select="substring($leader,7,1)"/>
+    <xsl:variable name="leader7" select="substring($leader,8,1)"/>
+    <xsl:variable name="leader19" select="substring($leader,20,1)"/>
+    <xsl:variable name="controlField008" select="marc:controlfield[@tag='008']"/>
+    <xsl:variable name="typeOf008">
+        <xsl:choose>
+            <xsl:when test="$leader6='a'">
+                <xsl:choose>
+                    <xsl:when
+                        test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
+                        >BK</xsl:when>
+                    <xsl:when test="$leader7='b' or $leader7='i' or $leader7='s'">SE</xsl:when>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:when test="$leader6='t'">BK</xsl:when>
+            <xsl:when test="$leader6='p'">MM</xsl:when>
+            <xsl:when test="$leader6='m'">CF</xsl:when>
+            <xsl:when test="$leader6='e' or $leader6='f'">MP</xsl:when>
+            <xsl:when test="$leader6='g' or $leader6='k' or $leader6='o' or $leader6='r'"
+                >VM</xsl:when>
+            <xsl:when test="$leader6='c' or $leader6='d' or $leader6='i' or $leader6='j'"
+                >MU</xsl:when>
+        </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="typeOfResource008">
+      <xsl:choose>
+          <xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
+          <xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
+          <xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
+          <xsl:when test="$leader6='i'">sound recording - nonmusical</xsl:when>
+          <xsl:when test="$leader6='j'">sound recording - musical</xsl:when>
+          <xsl:when test="$leader6='k'">still image</xsl:when>
+          <xsl:when test="$leader6='g'">moving image</xsl:when>
+          <xsl:when test="$leader6='r'">three dimensional object</xsl:when>
+          <xsl:when test="$leader6='m'">software, multimedia</xsl:when>
+          <xsl:when test="$leader6='p'">mixed material</xsl:when>
+      </xsl:choose>
+    </xsl:variable>
+    <!-- ucsd end -->
 
 	<!-- Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	MARC21slim2MODS3-5 (Revision 1.102) 20140812
@@ -139,6 +183,16 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</xsl:choose>
 	</xsl:template>
 	<xsl:template name="marcRecord">
+		<!-- ucsd start: adding roger record (see see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
+		<xsl:if test="$roger != ''">
+			<identifier type="roger record" displayLabel="roger record">
+				<xsl:value-of select="$roger"/>
+			</identifier>
+		</xsl:if>
+        <!-- ucsd end -->
+
+        <!-- ucsd start: commenting out and moving up above -->
+        <!--
 		<xsl:variable name="leader" select="marc:leader"/>
 		<xsl:variable name="leader6" select="substring($leader,7,1)"/>
 		<xsl:variable name="leader7" select="substring($leader,8,1)"/>
@@ -164,7 +218,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					>MU</xsl:when>
 			</xsl:choose>
 		</xsl:variable>
-
+        -->
+        <!-- ucsd end -->
 		<!-- titleInfo -->
 
 		<xsl:for-each select="marc:datafield[@tag='245']">
@@ -309,27 +364,31 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</name>
 		</xsl:for-each>
 -->
-
-		<typeOfResource>
-			<xsl:if test="$leader7='c'">
-				<xsl:attribute name="collection">yes</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
-				<xsl:attribute name="manuscript">yes</xsl:attribute>
-			</xsl:if>
-			<xsl:choose>
-				<xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
-				<xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
-				<xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
-				<xsl:when test="$leader6='i'">sound recording-nonmusical</xsl:when>
-				<xsl:when test="$leader6='j'">sound recording-musical</xsl:when>
-				<xsl:when test="$leader6='k'">still image</xsl:when>
-				<xsl:when test="$leader6='g'">moving image</xsl:when>
-				<xsl:when test="$leader6='r'">three dimensional object</xsl:when>
-				<xsl:when test="$leader6='m'">software, multimedia</xsl:when>
-				<xsl:when test="$leader6='p'">mixed material</xsl:when>
-			</xsl:choose>
-		</typeOfResource>
+		<xsl:if test="string-length($typeOfResource008) &gt; 0">
+		  <typeOfResource>
+				<xsl:if test="$leader7='c'">
+					<xsl:attribute name="collection">yes</xsl:attribute>
+				</xsl:if>
+				<xsl:if test="$leader6='d' or $leader6='f' or $leader6='p' or $leader6='t'">
+					<xsl:attribute name="manuscript">yes</xsl:attribute>
+				</xsl:if>
+				<xsl:value-of select="$typeOfResource008"/>
+	<!-- 
+				<xsl:choose>
+					<xsl:when test="$leader6='a' or $leader6='t'">text</xsl:when>
+					<xsl:when test="$leader6='e' or $leader6='f'">cartographic</xsl:when>
+					<xsl:when test="$leader6='c' or $leader6='d'">notated music</xsl:when>
+					<xsl:when test="$leader6='i'">sound recording - nonmusical</xsl:when>
+					<xsl:when test="$leader6='j'">sound recording - musical</xsl:when>
+					<xsl:when test="$leader6='k'">still image</xsl:when>
+					<xsl:when test="$leader6='g'">moving image</xsl:when>
+					<xsl:when test="$leader6='r'">three dimensional object</xsl:when>
+					<xsl:when test="$leader6='m'">software, multimedia</xsl:when>
+					<xsl:when test="$leader6='p'">mixed material</xsl:when>
+				</xsl:choose>
+	-->
+			</typeOfResource>
+		</xsl:if>
 		<xsl:if test="substring($controlField008,26,1)='d'">
 			<genre authority="marcgt">globe</genre>
 		</xsl:if>
@@ -664,12 +723,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<place>
 					<placeTerm>
 						<xsl:attribute name="type">text</xsl:attribute>
-						<xsl:call-template name="chopPunctuationFront">
-							<xsl:with-param name="chopString">
-								<xsl:call-template name="chopPunctuation">
-									<xsl:with-param name="chopString" select="."/>
-								</xsl:call-template>
-							</xsl:with-param>
+						<xsl:call-template name="chopPunctuation">
+							<xsl:with-param name="chopString" select="."/>
 						</xsl:call-template>
 					</placeTerm>
 				</place>
@@ -873,10 +928,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 						<xsl:when
 							test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
 							>monographic</xsl:when>
+                        <!-- ucsd start -->
 						<xsl:when
 							test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')"
 							>multipart monograph</xsl:when>
 						<xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
+                        <!-- ucsd end -->
 						<xsl:when test="$leader7='i'">integrating resource</xsl:when>
 						<xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
 					</xsl:choose>
@@ -1867,8 +1924,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			<xsl:call-template name="createNoteFrom585"/>
 		</xsl:for-each>
 
+        <!-- ucsd start -->
 		<xsl:for-each
-			select="marc:datafield[@tag=501 or @tag=507 or @tag=513 or @tag=514 or @tag=516 or @tag=522 or @tag=525 or @tag=526 or @tag=544 or @tag=547 or @tag=550 or @tag=552 or @tag=555 or @tag=556 or @tag=565 or @tag=567 or @tag=580 or @tag=584 or @tag=586]">
+			select="marc:datafield[@tag=501 or @tag=507 or @tag=513 or @tag=514 or @tag=516 or @tag=522 or @tag=525 or @tag=526 or @tag=544 or @tag=547 or @tag=550 or @tag=552 or @tag=555 or @tag=556 or @tag=565 or @tag=567 or @tag=580 or @tag=584 or @tag=586 or @tag=590]">
+            <!-- ucsd end -->
 			<xsl:call-template name="createNoteFrom5XX"/>
 		</xsl:for-each>
 
@@ -2487,6 +2546,15 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</identifier>
 		</xsl:for-each>
 		
+        <!-- ucsd start: adding 035 mapping to OCLC number identifier (see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
+		<xsl:for-each select="marc:datafield[@tag='035']">
+			<xsl:if test="marc:subfield[@code='a']">
+				<identifier type="OCLC number" displayLabel="OCLC number">
+                  <xsl:value-of select="substring-after(marc:subfield[@code='a'],'(OCoLC)')"/>
+				</identifier>
+			</xsl:if>
+		</xsl:for-each>
+        <!-- ucsd end -->
 		
 		<!-- 3.5 1.95 20140421 -->
 
@@ -4287,7 +4355,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 	<!-- name 700 710 711 720 -->
 
 	<xsl:template name="createNameFrom700">
-		<xsl:if test="@ind1='1'">
+        <!-- ucsd start: suppressing names with subfield t -->
+		<xsl:if test="@ind1='1' and not(marc:subfield[@code='t'])">
 			<name type="personal">
 				<xsl:call-template name="xxx880"/>
 				<xsl:call-template name="nameABCDQ"/>
@@ -4295,7 +4364,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:call-template name="role"/>
 			</name>
 		</xsl:if>
-		<xsl:if test="@ind1='3'">
+		<xsl:if test="@ind1='3' and not(marc:subfield[@code='t'])">
 			<name type="family">
 				<xsl:call-template name="xxx880"/>
 				<xsl:call-template name="nameABCDQ"/>
@@ -4303,22 +4372,31 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:call-template name="role"/>
 			</name>
 		</xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNameFrom710">
-		<name type="corporate">
-			<xsl:call-template name="xxx880"/>
-			<xsl:call-template name="nameABCDN"/>
-			<xsl:call-template name="role"/>
-		</name>
+        <!-- ucsd start: suppressing names with subfield t -->
+        <xsl:if test="not(marc:subfield[@code='t'])">
+		    <name type="corporate">
+			    <xsl:call-template name="xxx880"/>
+			    <xsl:call-template name="nameABCDN"/>
+			    <xsl:call-template name="role"/>
+		    </name>
+        </xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNameFrom711">
-		<name type="conference">
-			<xsl:call-template name="xxx880"/>
-			<xsl:call-template name="nameACDEQ"/>
-			<xsl:call-template name="role"/>
-		</name>
+        <!-- ucsd start: suppressing names with subfield t -->
+        <xsl:if test="not(marc:subfield[@code='t'])">
+		    <name type="conference">
+			    <xsl:call-template name="xxx880"/>
+			    <xsl:call-template name="nameACDEQ"/>
+			    <xsl:call-template name="role"/>
+		    </name>
+        </xsl:if>
+        <!-- ucsd end -->
 	</xsl:template>
 	
 	
@@ -4409,7 +4487,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</xsl:choose>
 		</xsl:variable>
 			
-		<xsl:if test="string-length($typeOfResource) &gt; 0">
+		<xsl:if test="string-length($typeOfResource) &gt; 0 and $typeOfResource != $typeOfResource008">
 			<typeOfResource><xsl:value-of select="$typeOfResource" /></typeOfResource>
 		</xsl:if>
 		</xsl:for-each>
@@ -4481,6 +4559,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
 	<!-- 1.100 245c 20140804 -->
 	<xsl:template name="createNoteFrom245c">
+        <!-- ucsd start: suppressing 245c statement of responsibility note (see https://lib-jira.ucsd.edu:8443/browse/DM-62)
 		<xsl:if test="marc:subfield[@code='c']">
 				<note type="statement of responsibility">
 					<xsl:attribute name="altRepGroup">
@@ -4492,7 +4571,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					</xsl:call-template>
 				</note>
 		</xsl:if>
-
+-->
+        <!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNoteFrom362">
