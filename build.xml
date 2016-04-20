@@ -25,6 +25,7 @@
       <include name="dom4j-1.6.1.jar"/>
       <include name="commons-httpclient.jar"/>
       <include name="commons-logging-1.1.1.jar"/>
+      <include name="commons-lang-2.3.jar"/>
       <include name="log4j-1.2.8.jar"/>
       <include name="library_package.jar"/>
       <include name="xalan.jar"/>

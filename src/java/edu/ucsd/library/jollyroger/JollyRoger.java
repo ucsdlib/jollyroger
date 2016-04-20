@@ -35,7 +35,7 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
-
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import edu.ucsd.library.util.XsltUtil;
@@ -518,7 +518,7 @@ public class JollyRoger extends HttpServlet
 			subfield = elem.addElement( "subfield" );
 		}
 		subfield.addAttribute( "code", code );
-		subfield.setText( value );
+		subfield.setText( StringEscapeUtils.unescapeHtml(value) );
 	}
 
 	/**
