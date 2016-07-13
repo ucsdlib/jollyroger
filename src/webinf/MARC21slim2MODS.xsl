@@ -4180,41 +4180,66 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:variable>
-			<xsl:variable name="titleChop">
-				<xsl:call-template name="chopPunctuation">
-					<xsl:with-param name="chopString">
-						<xsl:value-of select="$title"/>
-					</xsl:with-param>
-				</xsl:call-template>
-			</xsl:variable>
 			<xsl:choose>
 				<xsl:when test="@ind2&gt;0">
 					<xsl:if test="@tag!='880'">
 						<nonSort>
-							<xsl:value-of select="substring($titleChop,1,@ind2)"/>
+							<xsl:value-of select="substring($title,1,@ind2)"/>
 						</nonSort>
 					</xsl:if>
 					<title>
-						<xsl:value-of select="substring($titleChop,@ind2+1)"/>
+						<xsl:value-of select="substring($title,@ind2+1)"/>
 					</title>
 				</xsl:when>
 				<xsl:otherwise>
 					<title>
-						<xsl:value-of select="$titleChop"/>
+						<xsl:value-of select="$title"/>
 					</title>
 				</xsl:otherwise>
 			</xsl:choose>
-			<xsl:if test="marc:subfield[@code='b']">
+			<xsl:if test="marc:subfield[@code='b'] or marc:subfield[@code='c']">
 				<subTitle>
-					<xsl:call-template name="chopPunctuation">
-						<xsl:with-param name="chopString">
-							<xsl:call-template name="specialSubfieldSelect">
-								<xsl:with-param name="axis">b</xsl:with-param>
-								<xsl:with-param name="anyCodes">b</xsl:with-param>
-								<xsl:with-param name="afterCodes">afgks</xsl:with-param>
-							</xsl:call-template>
-						</xsl:with-param>
-					</xsl:call-template>
+					<xsl:variable name="subfield_b">
+						<xsl:call-template name="chopPunctuation">
+							<xsl:with-param name="chopString">
+								<xsl:call-template name="specialSubfieldSelect">
+									<xsl:with-param name="axis">b</xsl:with-param>
+									<xsl:with-param name="anyCodes">b</xsl:with-param>
+									<xsl:with-param name="afterCodes">afgks</xsl:with-param>
+								</xsl:call-template>
+							</xsl:with-param>
+						</xsl:call-template>
+					</xsl:variable>
+					<xsl:variable name="subfield_c">
+						<xsl:call-template name="chopPunctuation">
+							<xsl:with-param name="chopString">
+								<xsl:call-template name="specialSubfieldSelect">
+									<xsl:with-param name="axis">c</xsl:with-param>
+									<xsl:with-param name="anyCodes">c</xsl:with-param>
+									<xsl:with-param name="afterCodes">afgks</xsl:with-param>
+								</xsl:call-template>
+							</xsl:with-param>
+						</xsl:call-template>
+					</xsl:variable>
+					<xsl:variable name="subfield_cv">
+						<xsl:choose>
+							<xsl:when test="contains($subfield_c, '.')">
+								<xsl:value-of select="substring-after($subfield_c, '.')"/>
+							</xsl:when>
+							<xsl:otherwise><xsl:value-of select="$subfield_c"/></xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+					<xsl:if test="string-length($subfield_b) &gt; 0"><xsl:value-of select="$subfield_b" /></xsl:if>
+					<xsl:if test="string-length($subfield_cv) &gt; 0">
+						<xsl:choose>
+							<xsl:when test="contains($subfield_cv, ' /')">
+								<xsl:value-of select="concat('.', substring-before($subfield_cv, ' /'))"/>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="concat('.', $subfield_cv)" />
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:if>
 				</subTitle>
 			</xsl:if>
 			<xsl:call-template name="part"/>
