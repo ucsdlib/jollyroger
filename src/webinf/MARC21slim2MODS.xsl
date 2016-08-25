@@ -2114,12 +2114,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 								<xsl:call-template name="specialSubfieldSelect">
 									<xsl:with-param name="anyCodes">tfklmorsv</xsl:with-param>
 									<xsl:with-param name="axis">t</xsl:with-param>
-									<xsl:with-param name="afterCodes">g</xsl:with-param>
+									<xsl:with-param name="afterCodes">gnpd</xsl:with-param>
 								</xsl:call-template>
 							</xsl:with-param>
 						</xsl:call-template>
 					</title>
-					<xsl:call-template name="part"/>
 				</titleInfo>
 				<name type="personal">
 					<namePart>
@@ -4167,15 +4166,32 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			<xsl:call-template name="xxx880"/>
 			<xsl:variable name="title">
 				<xsl:choose>
-					<xsl:when test="marc:subfield[@code='b']">
-						<xsl:call-template name="specialSubfieldSelect">
-							<xsl:with-param name="axis">b</xsl:with-param>
-							<xsl:with-param name="beforeCodes">afgks</xsl:with-param>
-						</xsl:call-template>
+					<xsl:when test="marc:subfield[@code='c']">
+						<xsl:variable name="beforeC">
+							<xsl:call-template name="specialSubfieldSelect">
+								<xsl:with-param name="anyCodes">c</xsl:with-param>
+								<xsl:with-param name="axis">c</xsl:with-param>
+								<xsl:with-param name="beforeCodes">abfgksnpd</xsl:with-param>
+							</xsl:call-template>
+						</xsl:variable>
+						<xsl:variable name="afterC">
+							<xsl:call-template name="specialSubfieldSelect">
+								<xsl:with-param name="axis">c</xsl:with-param>
+								<xsl:with-param name="afterCodes">abfgksnpd</xsl:with-param>
+							</xsl:call-template>
+						</xsl:variable>
+						<xsl:variable name="beforeCChop">
+							<xsl:call-template name="chopField">
+								<xsl:with-param name="startChar">/</xsl:with-param>
+								<xsl:with-param name="endChar">.</xsl:with-param>
+								<xsl:with-param name="chopValue"><xsl:value-of select="$beforeC" /></xsl:with-param>
+							</xsl:call-template>
+						</xsl:variable>
+						<xsl:value-of select="concat($beforeCChop, ' ', $afterC)"/>
 					</xsl:when>
 					<xsl:otherwise>
 						<xsl:call-template name="subfieldSelect">
-							<xsl:with-param name="codes">abfgks</xsl:with-param>
+							<xsl:with-param name="codes">abfgksnpd</xsl:with-param>
 						</xsl:call-template>
 					</xsl:otherwise>
 				</xsl:choose>
@@ -4189,12 +4205,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</xsl:variable>
 			<xsl:choose>
 				<xsl:when test="@ind2&gt;0">
-					<xsl:if test="@tag!='880'">
-						<nonSort>
-							<xsl:value-of select="substring($titleChop,1,@ind2)"/>
-						</nonSort>
-					</xsl:if>
 					<title>
+						<xsl:if test="@tag!='880'">
+							<xsl:value-of select="substring($titleChop,1,@ind2)"/>
+						</xsl:if>
 						<xsl:value-of select="substring($titleChop,@ind2+1)"/>
 					</title>
 				</xsl:when>
@@ -4204,20 +4218,6 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					</title>
 				</xsl:otherwise>
 			</xsl:choose>
-			<xsl:if test="marc:subfield[@code='b']">
-				<subTitle>
-					<xsl:call-template name="chopPunctuation">
-						<xsl:with-param name="chopString">
-							<xsl:call-template name="specialSubfieldSelect">
-								<xsl:with-param name="axis">b</xsl:with-param>
-								<xsl:with-param name="anyCodes">b</xsl:with-param>
-								<xsl:with-param name="afterCodes">afgks</xsl:with-param>
-							</xsl:call-template>
-						</xsl:with-param>
-					</xsl:call-template>
-				</subTitle>
-			</xsl:if>
-			<xsl:call-template name="part"/>
 		</titleInfo>
 	</xsl:template>
 

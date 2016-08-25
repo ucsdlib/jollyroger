@@ -135,6 +135,30 @@
 		</xsl:choose>
 	</xsl:template>
 
+	<xsl:template name="chopField">
+		<xsl:param name="startChar"/>
+		<xsl:param name="endChar"/>
+		<xsl:param name="chopValue"/>
+		<xsl:choose>
+			<xsl:when test="contains($chopValue, $startChar)">
+				<xsl:call-template name="chopPunctuation">
+					<xsl:with-param name="chopString">
+						<xsl:value-of select="substring-before($chopValue, $startChar)"/>
+					</xsl:with-param>
+				</xsl:call-template>
+				<xsl:if test="contains(substring-after($chopValue, $startChar), $endChar)"><xsl:text>.</xsl:text></xsl:if>
+				<xsl:if test="contains(substring-after(substring-after($chopValue, $startChar), $endChar), $startChar)">
+					<xsl:call-template name="chopField">
+						<xsl:with-param name="startChar">/</xsl:with-param>
+						<xsl:with-param name="endChar">.</xsl:with-param>
+						<xsl:with-param name="chopValue"><xsl:value-of select="substring-after(substring-after($chopValue, $startChar), $endChar)" /></xsl:with-param>
+					</xsl:call-template>
+				</xsl:if>
+			</xsl:when>
+			<xsl:otherwise><xsl:value-of select="$chopValue"/></xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
 	<!-- nate added 12/14/2007 for lccn.loc.gov: url encode ampersand, etc. -->
 	<xsl:template name="url-encode">
 
