@@ -3131,6 +3131,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 								</xsl:when>
 							</xsl:choose>
 						</xsl:attribute>
+						<xsl:if test="@ind2=7">
+							<xsl:variable name="id">
+								<xsl:call-template name="chopLeadingCharacter">
+									<xsl:with-param name="chopString" select="substring-after(marc:subfield[@code='0'], 'fst')" />
+									<xsl:with-param name="leadingCharacter">0</xsl:with-param>
+								</xsl:call-template>
+							</xsl:variable>
+							<xsl:if test="string-length($id) > 0">
+								<xsl:attribute name="valueURI">
+									<xsl:value-of select="concat('http://id.worldcat.org/fast/', $id)" />
+								</xsl:attribute>
+							</xsl:if>
+						</xsl:if>
 					</xsl:if>
 				</xsl:if>
 			</xsl:if>

@@ -159,6 +159,25 @@
 		</xsl:choose>
 	</xsl:template>
 
+	<xsl:template name="chopLeadingCharacter">
+		<xsl:param name="chopString"/>
+		<xsl:param name="leadingCharacter"/>
+		<xsl:variable name="length" select="string-length($chopString)"/>
+		<xsl:choose>
+			<xsl:when test="$length=0"/>
+			<xsl:when test="contains($leadingCharacter, substring($chopString,1,1))">
+				<xsl:call-template name="chopLeadingCharacter">
+					<xsl:with-param name="chopString" select="substring($chopString,2,$length - 1)"/>
+					<xsl:with-param name="leadingCharacter" select="$leadingCharacter"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:when test="not($chopString)"/>
+			<xsl:otherwise>
+				<xsl:value-of select="$chopString"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
 	<!-- nate added 12/14/2007 for lccn.loc.gov: url encode ampersand, etc. -->
 	<xsl:template name="url-encode">
 
