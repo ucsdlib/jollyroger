@@ -5081,10 +5081,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		<subject>
 			<xsl:call-template name="xxx880"/>
 			<xsl:call-template name="subjectAuthority"/>
-			<name type="conference">
+			<name type="corporate">
 				<namePart>
-					<xsl:call-template name="subfieldSelect">
-						<xsl:with-param name="codes">abcdeqnp</xsl:with-param>
+					<xsl:call-template name="chopPunctuation">
+						<xsl:with-param name="chopString">
+							<xsl:call-template name="subfieldSelect">
+								<xsl:with-param name="codes">abcdeqnp</xsl:with-param>
+							</xsl:call-template>
+						</xsl:with-param>
 					</xsl:call-template>
 				</namePart>
 				<xsl:for-each select="marc:subfield[@code='4']">
