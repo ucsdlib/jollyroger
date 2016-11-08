@@ -3131,6 +3131,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 								</xsl:when>
 							</xsl:choose>
 						</xsl:attribute>
+						<xsl:if test="@ind2=7">
+							<xsl:call-template name="fastURI">
+								<xsl:with-param name="idString">
+									<xsl:value-of select="marc:subfield[@code='0']"/>
+								</xsl:with-param>
+							</xsl:call-template>
+						</xsl:if>
 					</xsl:if>
 				</xsl:if>
 			</xsl:if>
@@ -4501,15 +4508,26 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 	</xsl:template>
 
 	<xsl:template name="createGenreFrom655">
-		<genre authority="marcgt">
+		<genre>
 			<xsl:attribute name="authority">
 				<xsl:value-of select="marc:subfield[@code='2']"/>
 			</xsl:attribute>
+			<xsl:if test="@ind2=7">
+				<xsl:call-template name="fastURI">
+					<xsl:with-param name="idString">
+						<xsl:value-of select="marc:subfield[@code='0']"/>
+					</xsl:with-param>
+				</xsl:call-template>
+			</xsl:if>
 			<!-- Template checks for altRepGroup - 880 $6 -->
 			<xsl:call-template name="xxx880"/>
-			<xsl:call-template name="subfieldSelect">
-				<xsl:with-param name="codes">abvxyz</xsl:with-param>
-				<xsl:with-param name="delimeter">-</xsl:with-param>
+			<xsl:call-template name="chopPunctuation">
+				<xsl:with-param name="chopString">
+					<xsl:call-template name="subfieldSelect">
+						<xsl:with-param name="codes">abvxyz</xsl:with-param>
+						<xsl:with-param name="delimeter">-</xsl:with-param>
+					</xsl:call-template>
+				</xsl:with-param>
 			</xsl:call-template>
 		</genre>
 	</xsl:template>
@@ -5063,10 +5081,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		<subject>
 			<xsl:call-template name="xxx880"/>
 			<xsl:call-template name="subjectAuthority"/>
-			<name type="conference">
+			<name type="corporate">
 				<namePart>
-					<xsl:call-template name="subfieldSelect">
-						<xsl:with-param name="codes">abcdeqnp</xsl:with-param>
+					<xsl:call-template name="chopPunctuation">
+						<xsl:with-param name="chopString">
+							<xsl:call-template name="subfieldSelect">
+								<xsl:with-param name="codes">abcdeqnp</xsl:with-param>
+							</xsl:call-template>
+						</xsl:with-param>
 					</xsl:call-template>
 				</namePart>
 				<xsl:for-each select="marc:subfield[@code='4']">
@@ -5318,6 +5340,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 						</xsl:call-template>
 					</extraterrestrialArea>
 				</xsl:for-each>
+				<xsl:if test="@ind2=7">
+					<xsl:call-template name="fastURI">
+						<xsl:with-param name="idString">
+							<xsl:value-of select="marc:subfield[@code='0']"/>
+						</xsl:with-param>
+					</xsl:call-template>
+				</xsl:if>
 			</hierarchicalGeographic>
 		</subject>
 	</xsl:template>
