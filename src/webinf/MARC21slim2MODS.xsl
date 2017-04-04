@@ -4973,20 +4973,14 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 	</xsl:template>
 
 	<xsl:template name="createNoteFrom700">
-		<note type="work title">
+		<note type="work featured">
 			<xsl:call-template name="xxx880"/>
 			<xsl:call-template name="uri"/>
-			<xsl:variable name="str">
-				<xsl:choose>
-					<xsl:when test="marc:subfield[@code='d']">
-						<xsl:value-of select="concat(marc:subfield[@code='a'],' ', marc:subfield[@code='d'], ' ', marc:subfield[@code='t'])"/>
-					</xsl:when>
-					<xsl:otherwise><xsl:value-of select="concat(marc:subfield[@code='a'],' ', marc:subfield[@code='t'])"/></xsl:otherwise>
-				</xsl:choose>
-			</xsl:variable>
 			<xsl:call-template name="chopPunctuation">
 				<xsl:with-param name="chopString">
-					<xsl:value-of select="$str"/>
+					<xsl:call-template name="subfieldSelect">
+						<xsl:with-param name="codes">abcdfgjklmnopqrst</xsl:with-param>
+					</xsl:call-template>
 				</xsl:with-param>
 			</xsl:call-template>
 		</note>
