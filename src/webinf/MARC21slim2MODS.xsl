@@ -2105,36 +2105,43 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		</xsl:for-each>
 
 		<xsl:for-each select="marc:datafield[@tag=700][marc:subfield[@code='t']]">
-			<relatedItem>
-				<xsl:call-template name="constituentOrRelatedType"/>
-				<titleInfo>
-					<title>
-						<xsl:call-template name="chopPunctuation">
-							<xsl:with-param name="chopString">
-								<xsl:call-template name="specialSubfieldSelect">
-									<xsl:with-param name="anyCodes">tfklmorsv</xsl:with-param>
-									<xsl:with-param name="axis">t</xsl:with-param>
-									<xsl:with-param name="afterCodes">gnpd</xsl:with-param>
+			<xsl:choose>
+				<xsl:when test="@ind2='2'">
+					<xsl:call-template name="createNoteFrom700"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<relatedItem>
+						<xsl:call-template name="constituentOrRelatedType"/>
+						<titleInfo>
+							<title>
+								<xsl:call-template name="chopPunctuation">
+									<xsl:with-param name="chopString">
+										<xsl:call-template name="specialSubfieldSelect">
+											<xsl:with-param name="anyCodes">tfklmorsv</xsl:with-param>
+											<xsl:with-param name="axis">t</xsl:with-param>
+											<xsl:with-param name="afterCodes">gnpd</xsl:with-param>
+										</xsl:call-template>
+									</xsl:with-param>
 								</xsl:call-template>
-							</xsl:with-param>
-						</xsl:call-template>
-					</title>
-				</titleInfo>
-				<name type="personal">
-					<namePart>
-						<xsl:call-template name="specialSubfieldSelect">
-							<xsl:with-param name="anyCodes">aq</xsl:with-param>
-							<xsl:with-param name="axis">t</xsl:with-param>
-							<xsl:with-param name="beforeCodes">g</xsl:with-param>
-						</xsl:call-template>
-					</namePart>
-					<xsl:call-template name="termsOfAddress"/>
-					<xsl:call-template name="nameDate"/>
-					<xsl:call-template name="role"/>
-				</name>
-				<xsl:call-template name="relatedForm"/>
-				<xsl:call-template name="relatedIdentifierISSN"/>
-			</relatedItem>
+							</title>
+						</titleInfo>
+						<name type="personal">
+							<namePart>
+								<xsl:call-template name="specialSubfieldSelect">
+									<xsl:with-param name="anyCodes">aq</xsl:with-param>
+									<xsl:with-param name="axis">t</xsl:with-param>
+									<xsl:with-param name="beforeCodes">g</xsl:with-param>
+								</xsl:call-template>
+							</namePart>
+							<xsl:call-template name="termsOfAddress"/>
+							<xsl:call-template name="nameDate"/>
+							<xsl:call-template name="role"/>
+						</name>
+						<xsl:call-template name="relatedForm"/>
+						<xsl:call-template name="relatedIdentifierISSN"/>
+					</relatedItem>
+				</xsl:otherwise>
+			</xsl:choose>
 		</xsl:for-each>
 		<xsl:for-each select="marc:datafield[@tag=710][marc:subfield[@code='t']]">
 			<relatedItem>
@@ -2738,14 +2745,18 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		<xsl:for-each select="marc:subfield[@code='e']">
 			<role>
 				<roleTerm type="text">
-					<xsl:value-of select="."/>
+					<xsl:call-template name="chopPunctuation">
+						<xsl:with-param name="chopString" select="."/>
+					</xsl:call-template>
 				</roleTerm>
 			</role>
 		</xsl:for-each>
 		<xsl:for-each select="marc:subfield[@code='4']">
 			<role>
 				<roleTerm authority="marcrelator" type="code">
-					<xsl:value-of select="."/>
+					<xsl:call-template name="chopPunctuation">
+						<xsl:with-param name="chopString" select="."/>
+					</xsl:call-template>
 				</roleTerm>
 			</role>
 		</xsl:for-each>
@@ -4504,6 +4515,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 		<xsl:if test="string-length($typeOfResource) &gt; 0 and $typeOfResource != $typeOfResource008">
 			<typeOfResource><xsl:value-of select="$typeOfResource" /></typeOfResource>
 		</xsl:if>
+
+		<!-- genre 336: more specific type of resource and seems like a good fit for genre -->
+		<!-- map to Note:material details to avoid FAST conflicts -->
+		<note type="material details">
+			<xsl:value-of select="."/>
+		</note>
 		</xsl:for-each>
 	</xsl:template>
 
@@ -4952,6 +4969,20 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				</xsl:for-each>
 			</xsl:variable>
 			<xsl:value-of select="substring($str,1,string-length($str)-1)"/>
+		</note>
+	</xsl:template>
+
+	<xsl:template name="createNoteFrom700">
+		<note type="work featured">
+			<xsl:call-template name="xxx880"/>
+			<xsl:call-template name="uri"/>
+			<xsl:call-template name="chopPunctuation">
+				<xsl:with-param name="chopString">
+					<xsl:call-template name="subfieldSelect">
+						<xsl:with-param name="codes">abcdfgjklmnopqrst</xsl:with-param>
+					</xsl:call-template>
+				</xsl:with-param>
+			</xsl:call-template>
 		</note>
 	</xsl:template>
 
