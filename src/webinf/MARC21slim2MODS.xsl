@@ -1935,6 +1935,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			<xsl:call-template name="createNoteFrom5XX"/>
 		</xsl:for-each>
 
+		<!--  ucsd note 790 791 792 793 796 797 798 799  -->
+		<xsl:for-each select="marc:datafield[@tag=790 or @tag=791 or @tag=792 or @tag=793 or @tag=796 or @tag=797 or @tag=798 or @tag=799]">
+			<xsl:call-template name="createLocalAddedEntryNoteFrom79X"/>
+		</xsl:for-each>
+
 		<xsl:for-each select="marc:datafield[@tag=034]">
 			<xsl:call-template name="createSubGeoFrom034"/>
 		</xsl:for-each>
@@ -4037,6 +4042,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:call-template name="createNoteFrom5XX"/>
 			</xsl:when>
 
+			<!--  ucsd note 790 791 792 793 796 797 798 799  -->
+
+			<xsl:when test="$sf06a=790 or $sf06a=791 or $sf06a=792 or $sf06a=793 or $sf06a=796 or $sf06a=797 or $sf06a=798 or $sf06a=799">
+				<xsl:call-template name="createLocalAddedEntryNoteFrom79X"/>
+			</xsl:when>
+
 			<!--  subject 034 043 045 255 656 662 752 	-->
 
 			<xsl:when test="$sf06a='034'">
@@ -4601,20 +4612,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 
 	<!-- 1.100 245c 20140804 -->
 	<xsl:template name="createNoteFrom245c">
-        <!-- ucsd start: suppressing 245c statement of responsibility note (see https://lib-jira.ucsd.edu:8443/browse/DM-62)
+		<!-- ucsd start: suppressing 245c statement of responsibility note (see https://lib-jira.ucsd.edu:8443/browse/DM-62) -->
 		<xsl:if test="marc:subfield[@code='c']">
-				<note type="statement of responsibility">
-					<xsl:attribute name="altRepGroup">
-						<xsl:text>00</xsl:text>
-					</xsl:attribute>
-					<xsl:call-template name="scriptCode"/>
-					<xsl:call-template name="subfieldSelect">
-						<xsl:with-param name="codes">c</xsl:with-param>
-					</xsl:call-template>
-				</note>
+			<note type="statement of responsibility">
+				<xsl:attribute name="altRepGroup">
+					<xsl:text>00</xsl:text>
+				</xsl:attribute>
+				<xsl:call-template name="scriptCode"/>
+				<xsl:call-template name="subfieldSelect">
+					<xsl:with-param name="codes">c</xsl:with-param>
+				</xsl:call-template>
+			</note>
 		</xsl:if>
--->
-        <!-- ucsd end -->
+		<!-- ucsd end -->
 	</xsl:template>
 
 	<xsl:template name="createNoteFrom362">
@@ -4982,6 +4992,17 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 						<xsl:with-param name="codes">abcdfgjklmnopqrst</xsl:with-param>
 					</xsl:call-template>
 				</xsl:with-param>
+			</xsl:call-template>
+		</note>
+	</xsl:template>
+
+	<!-- ucsd note 790 791 792 793 796 797 798 799 -->
+	<xsl:template name="createLocalAddedEntryNoteFrom79X">
+		<note type="local added entry">
+			<xsl:call-template name="xxx880"/>
+			<xsl:call-template name="uri"/>
+			<xsl:call-template name="subfieldSelect">
+				<xsl:with-param name="codes">abcdefghijklnpqtux03458</xsl:with-param>
 			</xsl:call-template>
 		</note>
 	</xsl:template>
