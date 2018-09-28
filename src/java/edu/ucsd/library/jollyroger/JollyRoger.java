@@ -109,7 +109,7 @@ public class JollyRoger extends HttpServlet
 		String roger = null;
 		if ( type.equals("bib") )
 		{
-			if ( value.length() > 8 ) { value = value.substring(0,8); }
+			if (value.indexOf("~") > 0) { value = value.substring(0, value.indexOf("~")).trim(); }
 			roger = value;
 			// "/search/.b1234567/.b1234567/1,1,1,B/detlmarc~1234567&FF=&1,0,"
 			query = "/search/." + value + "/." + value + "/1,1,1,B/detlmarc~"
