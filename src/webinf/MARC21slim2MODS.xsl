@@ -1810,12 +1810,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</xsl:choose>
 		</xsl:if>
 
-		<!-- 1.32 tmee Drop note mapping for 510 and map only to <relatedItem>
+		<!-- 1.32 tmee Drop note mapping for 510 and map only to <relatedItem> -->
 		<xsl:for-each select="marc:datafield[@tag=510]">
-			<note type="citation/reference">
+			<note type="bibliography">
 				<xsl:call-template name="uri"/>
 				<xsl:variable name="str">
-					<xsl:for-each select="marc:subfield[@code!='6' or @code!='8']">
+					<xsl:for-each select="marc:subfield">
 						<xsl:value-of select="."/>
 						<xsl:text> </xsl:text>
 					</xsl:for-each>
@@ -1823,7 +1823,6 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 				<xsl:value-of select="substring($str,1,string-length($str)-1)"/>
 			</note>
 		</xsl:for-each>
-		-->
 
 		<!-- 245c 362az 502-585 5XX-->
 
@@ -2045,7 +2044,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 			</relatedItem>
 		</xsl:for-each>
 
-		<!-- tmee 1.40 1.74 1.88 fixed 510c mapping 20130829-->
+		<!-- tmee 1.40 1.74 1.88 fixed 510c mapping 20130829
 
 		<xsl:for-each select="marc:datafield[@tag=510]">
 			<relatedItem type="isReferencedBy">
@@ -2078,7 +2077,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
 					</detail>
 					</part>
 			</relatedItem>
-		</xsl:for-each>
+		</xsl:for-each> -->
 
 
 		<xsl:for-each select="marc:datafield[@tag=534]">
